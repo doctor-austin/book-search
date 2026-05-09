@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>书籍搜索导航</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, 'Microsoft YaHei', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: #4a5568;
+      margin-bottom: 36px;
+      font-size: 0.9rem;
+    }
+
+    /* ── 搜索框 ── */
+    .search-area {
+      width: 100%;
+      max-width: 640px;
+    }
+    .search-row {
+      display: flex;
+      gap: 10px;
+    }
+    .search-row input {
+      flex: 1;
+      padding: 15px 20px;
+      border-radius: 14px;
+      border: 1.5px solid #2d3748;
+      background: #1a1f2e;
+      color: #e2e8f0;
+      font-size: 1.05rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-row input:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.12);
+    }
+    .search-row input::placeholder { color: #3a4358; }
+
+    .btn-search {
+      padding: 15px 26px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, #3b82f6, #7c3aed);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-search:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-search:active { transform: scale(0.97); }
+
+    /* ── 结果区域 ── */
+    .results {
+      width: 100%;
+      max-width: 640px;
+      margin-top: 22px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .results.visible { display: flex; }
+
+    .results-label {
+      font-size: 0.8rem;
+      color: #3a4a60;
+      padding-left: 2px;
+    }
+    .results-label strong { color: #e2e8f0; }
+
+    /* ── 跳转行 ── */
+    .jump-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    /* 主跳转按钮（占大部分宽度） */
+    .jump-main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1.5px solid #232a3b;
+      background: #1a1f2e;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      min-width: 0;
+    }
+    .jump-main:hover { transform: translateX(4px); }
+    .jump-main.zlib:hover { border-color: #3b82f6; background: #141c2e; }
+    .jump-main.anna:hover { border-color: #7c3aed; background: #14102e; }
+
+    .jm-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .jm-info { flex: 1; min-width: 0; }
+    .jm-title { font-size: 0.95rem; font-weight: 700; }
+    .jm-url {
+      font-size: 0.68rem;
+      font-family: monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 3px;
+    }
+    .jump-main.zlib .jm-url { color: #3b82f6; }
+    .jump-main.anna .jm-url { color: #7c3aed; }
+
+    .jm-arrow {
+      font-size: 1.2rem;
+      opacity: 0.25;
+      flex-shrink: 0;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .jump-main:hover .jm-arrow { opacity: 1; transform: translateX(3px); }
+
+    /* 标签 */
+    .jm-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.62rem;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .jump-main.zlib .jm-tag { background: rgba(59,130,246,0.12); color: #60a5fa; }
+    .jump-main.anna .jm-tag { background: rgba(124,58,237,0.12); color: #a78bfa; }
+
+    .note {
+      margin-top: 28px;
+      font-size: 0.72rem;
+      color: #2a3244;
+      text-align: center;
+      max-width: 540px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📚 书籍搜索导航</h1>
+  <p class="subtitle">输入关键词，选择平台直接跳转</p>
+
+  <div class="search-area">
+    <div class="search-row">
+      <input
+        type="text"
+        id="query"
+        placeholder="书名 / 作者 / ISBN..."
+        onkeydown="if(event.key==='Enter') doSearch()"
+        autofocus
+      />
+      <button class="btn-search" onclick="doSearch()">搜索</button>
+    </div>
+  </div>
+
+  <!-- 结果 -->
+  <div class="results" id="results">
+    <div class="results-label">「<strong id="kw-display"></strong>」的搜索入口：</div>
+
+    <!-- Z-Library -->
+    <div class="jump-row">
+      <a class="jump-main zlib" id="zlib-link" href="#" target="_blank">
+        <span class="jm-icon">📘</span>
+        <div class="jm-info">
+          <div class="jm-title">Z-Library <span class="jm-tag">中文版</span></div>
+          <div class="jm-url" id="zlib-url-text"></div>
+        </div>
+        <span class="jm-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- Anna's Archive -->
+    <div class="jump-row">
+      <a class="jump-main anna" id="anna-link" href="#" target="_blank">
+        <span class="jm-icon">📗</span>
+        <div class="jm-info">
+          <div class="jm-title">Anna's Archive <span class="jm-tag">中文界面</span></div>
+          <div class="jm-url" id="anna-url-text"></div>
+        </div>
+        <span class="jm-arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <p class="note">⚠️ 以上网站在部分地区需要科学上网访问。仅供学术研究与个人学习使用。</p>
+
+  <script>
+    // Z-Library 同时提供两种搜索路径，优先用 /s/，备选 /?q=
+    // 实测 zh.zliw.ru 支持 /s/{keyword} 格式
+    const ZLIB_SEARCH = 'https://zh.zliw.ru/s/';
+    const ANNA_SEARCH = 'https://annas-archive.io/search?lang=zh&q=';
+
+    function doSearch() {
+      const raw = document.getElementById('query').value.trim();
+      if (!raw) { document.getElementById('query').focus(); return; }
+
+      const q        = encodeURIComponent(raw);
+      const zlibUrl  = ZLIB_SEARCH + q;
+      const annaUrl  = ANNA_SEARCH + q;
+
+      document.getElementById('kw-display').textContent   = raw;
+      document.getElementById('zlib-link').href           = zlibUrl;
+      document.getElementById('zlib-url-text').textContent = zlibUrl;
+      document.getElementById('anna-link').href           = annaUrl;
+      document.getElementById('anna-url-text').textContent = annaUrl;
+
+      document.getElementById('results').classList.add('visible');
+    }
+  </script>
+
+</body>
+</html>
