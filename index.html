@@ -215,7 +215,7 @@
     // Z-Library 同时提供两种搜索路径，优先用 /s/，备选 /?q=
     // 实测 zh.zliw.ru 支持 /s/{keyword} 格式
     const ZLIB_SEARCH = 'https://zh.zliw.ru/s/';
-    const ANNA_SEARCH = 'https://annas-archive.gl/';
+    const ANNA_SEARCH = 'https://annas-archive.gl/search?q=';
 
     function doSearch() {
       const raw = document.getElementById('query').value.trim();
